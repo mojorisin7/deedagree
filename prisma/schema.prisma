@@ -1,13 +1,245 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  SOLICITOR
+  BROKER
+  VIEWER
+}
+
+enum DeedStatus {
+  DRAFT
+  PENDING_SIGNATURES
+  PARTIALLY_SIGNED
+  FULLY_SIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum SignatureStatus {
+  PENDING
+  INVITED
+  SIGNED
+  DECLINED
+}
+
+enum GuaranteeType {
+  ALL_MONIES
+  LIMITED
+  SPECIFIC
+}
+
+enum OrgType {
+  LAW_FIRM
+  BROKERAGE
+  LENDER
+  OTHER
+}
+
+enum GoverningLaw {
+  ENGLAND_WALES
+  SCOTLAND
+  NORTHERN_IRELAND
+}
+
+model Organisation {
+  id        String   @id @default(cuid())
+  name      String
+  type      OrgType  @default(OTHER)
+  address   String?
+  phone     String?
+  email     String?
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  deeds     Deed[]
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String?
+  passwordHash   String?
+  role           Role          @default(VIEWER)
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  sessions       Session[]
+  accounts       Account[]
+  deeds          Deed[]
+  auditLogs      AuditLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Deed {
+  id        String     @id @default(cuid())
+  reference String     @unique
+  status    DeedStatus @default(DRAFT)
+
+  companyName       String
+  companyRegNumber  String
+  companyAddress    String
+  companyIncDate    DateTime?
+  directorName      String?
+  directorEmail     String?
+
+  propertyAddress   String
+  titleNumber       String?
+  mortgageAmount    Int
+  lender            String
+  lenderAddress     String?
+  mortgageRef       String?
+  mortgageStartDate DateTime?
+  mortgageTermYears Int?
+
+  guaranteeType     GuaranteeType @default(ALL_MONIES)
+  limitedAmount     Int?
+  governingLaw      GoverningLaw  @default(ENGLAND_WALES)
+  executionDate     DateTime?
+  specialConditions String?       @db.Text
+  jointAndSeveral   Boolean       @default(true)
+  includesInterest  Boolean       @default(true)
+  includesCosts     Boolean       @default(true)
+  requiresILA       Boolean       @default(true)
+
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  createdById    String
+  createdBy      User          @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  guarantors Guarantor[]
+  auditLogs  AuditLog[]
+  documents  Document[]
+
+  @@index([status])
+  @@index([organisationId])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model Guarantor {
+  id     String @id @default(cuid())
+  deedId String
+  deed   Deed   @relation(fields: [deedId], references: [id], onDelete: Cascade)
+
+  fullName               String
+  dateOfBirth            DateTime?
+  email                  String
+  address                String?
+  phone                  String?
+  relationshipToCompany  String?
+  maxIndividualLiability Int?
+  sortOrder              Int            @default(0)
+
+  signatureStatus  SignatureStatus @default(PENDING)
+  signatureData    String?        @db.Text
+  signedAt         DateTime?
+  signedIpAddress  String?
+  signedUserAgent  String?
+
+  witnessName      String?
+  witnessAddress   String?
+  witnessSignature String?  @db.Text
+  witnessSignedAt  DateTime?
+
+  ilaConfirmed       Boolean @default(false)
+  termsConfirmed     Boolean @default(false)
+  voluntaryConfirmed Boolean @default(false)
+  liabilityConfirmed Boolean @default(false)
+
+  inviteToken     String?  @unique
+  inviteSentAt    DateTime?
+  inviteExpiresAt DateTime?
+  lastReminderAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([deedId])
+  @@index([email])
+  @@index([inviteToken])
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  deedId      String?
+  deed        Deed?      @relation(fields: [deedId], references: [id])
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id])
+  guarantorId String?
+  guarantor   Guarantor? @relation(fields: [guarantorId], references: [id])
+
+  action    String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([deedId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  deedId      String
+  deed        Deed     @relation(fields: [deedId], references: [id], onDelete: Cascade)
+  filename    String
+  storagePath String
+  mimeType    String   @default("application/pdf")
+  sizeBytes   Int
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  @@index([deedId])
 }

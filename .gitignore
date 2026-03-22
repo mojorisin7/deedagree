@@ -41,3 +41,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+DEV.md
+
+# user-generated uploads
+/uploads
+
+# local claude code settings
+.claude/

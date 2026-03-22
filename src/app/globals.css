@@ -127,4 +127,7 @@
   html {
     @apply font-sans;
   }
+  .font-serif {
+    font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
+  }
 }
