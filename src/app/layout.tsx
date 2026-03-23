@@ -22,6 +22,9 @@ const libreBaskerville = Libre_Baskerville({
 export const metadata: Metadata = {
   title: 'Deed of Guarantee',
   description: 'Legal document management for personal mortgage guarantees',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
