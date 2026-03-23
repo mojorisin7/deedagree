@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { LogOut, Settings, User } from 'lucide-react'
+import { LogOut, Settings, Menu } from 'lucide-react'
 import type { Role } from '@prisma/client'
 
 function getPageTitle(pathname: string): string {
@@ -44,9 +44,10 @@ interface HeaderProps {
     email?: string | null
     role: Role
   }
+  onMenuToggle?: () => void
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, onMenuToggle }: HeaderProps) {
   const pathname = usePathname()
   const title = getPageTitle(pathname)
 
@@ -55,12 +56,20 @@ export function Header({ user }: HeaderProps) {
     : (user.email?.[0] ?? 'U').toUpperCase()
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-slate-200">
-      <div>
+    <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-white border-b border-slate-200">
+      <div className="flex items-center gap-3">
+        {/* Hamburger - mobile only */}
+        <button
+          onClick={onMenuToggle}
+          className="md:hidden p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <h1 className="text-lg font-serif font-semibold text-slate-900">{title}</h1>
       </div>
-      <div className="flex items-center gap-3">
-        <Badge variant={roleBadgeVariant[user.role]} className="text-xs">
+      <div className="flex items-center gap-2 md:gap-3">
+        <Badge variant={roleBadgeVariant[user.role]} className="text-xs hidden sm:inline-flex">
           {user.role}
         </Badge>
         <DropdownMenu>

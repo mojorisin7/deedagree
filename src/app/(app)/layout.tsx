@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Header } from '@/components/layout/header'
+import { LayoutShell } from '@/components/layout/layout-shell'
 import type { Role } from '@prisma/client'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -22,13 +21,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar userRole={user.role} />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header user={user} />
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
+      <LayoutShell user={user}>
+        {children}
+      </LayoutShell>
       <Toaster richColors position="top-right" />
     </div>
   )

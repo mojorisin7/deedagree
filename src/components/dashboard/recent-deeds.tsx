@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/formatting'
@@ -33,48 +32,49 @@ export function RecentDeeds({ deeds }: RecentDeedsProps) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Reference</TableHead>
-          <TableHead>Company</TableHead>
-          <TableHead>Lender</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Guarantors</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead className="w-10"></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {deeds.map((deed) => {
-          const cfg = statusConfig[deed.status]
-          return (
-            <TableRow key={deed.id} className="hover:bg-slate-50">
-              <TableCell className="font-mono text-xs font-medium">{deed.reference}</TableCell>
-              <TableCell className="font-medium">{deed.companyName}</TableCell>
-              <TableCell className="text-slate-600 text-sm">{deed.lender}</TableCell>
-              <TableCell className="text-sm">{formatCurrency(deed.mortgageAmount)}</TableCell>
-              <TableCell className="text-center text-sm">
-                {deed.guarantors.length}
-              </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.className}`}>
-                  {cfg.label}
-                </span>
-              </TableCell>
-              <TableCell className="text-sm text-slate-500">{formatDate(deed.createdAt)}</TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/deeds/${deed.id}`}>
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Company</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="hidden sm:table-cell">Amount</TableHead>
+            <TableHead className="hidden md:table-cell">Guarantors</TableHead>
+            <TableHead className="hidden md:table-cell">Created</TableHead>
+            <TableHead className="w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {deeds.map((deed) => {
+            const cfg = statusConfig[deed.status]
+            return (
+              <TableRow key={deed.id} className="hover:bg-slate-50">
+                <TableCell>
+                  <p className="font-medium text-sm">{deed.companyName}</p>
+                  <p className="font-mono text-xs text-slate-500">{deed.reference}</p>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.className}`}>
+                    {cfg.label}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-sm">{formatCurrency(deed.mortgageAmount)}</TableCell>
+                <TableCell className="hidden md:table-cell text-center text-sm">
+                  {deed.guarantors.length}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-sm text-slate-500">{formatDate(deed.createdAt)}</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/deeds/${deed.id}`}>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

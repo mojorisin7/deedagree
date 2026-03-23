@@ -33,14 +33,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-serif font-bold text-slate-900">
             Welcome back{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
           </h2>
           <p className="text-slate-500 text-sm mt-1">Here&apos;s an overview of your deeds</p>
         </div>
-        <Button asChild>
+        <Button asChild className="shrink-0">
           <Link href="/deeds/new">
             <Plus className="h-4 w-4 mr-2" />
             New Deed

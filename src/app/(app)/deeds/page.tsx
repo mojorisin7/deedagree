@@ -47,12 +47,12 @@ export default async function DeedsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-serif font-bold text-slate-900">Deeds</h2>
           <p className="text-slate-500 text-sm">{total} deed{total !== 1 ? 's' : ''} found</p>
         </div>
-        <Button asChild>
+        <Button asChild className="shrink-0">
           <Link href="/deeds/new">
             <Plus className="h-4 w-4 mr-2" />
             New Deed
@@ -63,32 +63,34 @@ export default async function DeedsPage({ searchParams }: PageProps) {
       {/* Search/Filter Bar */}
       <Card className="border-slate-200">
         <CardContent className="p-4">
-          <form className="flex gap-3 flex-wrap">
+          <form className="flex flex-col sm:flex-row gap-3">
             <input
               name="q"
               defaultValue={q}
               placeholder="Search by company, lender, guarantor, or reference..."
-              className="flex-1 min-w-48 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-900"
+              className="flex-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-900"
             />
-            <select
-              name="status"
-              defaultValue={status ?? ''}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-900"
-            >
-              <option value="">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PENDING_SIGNATURES">Pending Signatures</option>
-              <option value="PARTIALLY_SIGNED">Partially Signed</option>
-              <option value="FULLY_SIGNED">Fully Signed</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-            <Button type="submit" variant="outline" size="sm">Search</Button>
-            {(q || status) && (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/deeds">Clear</Link>
-              </Button>
-            )}
+            <div className="flex gap-2">
+              <select
+                name="status"
+                defaultValue={status ?? ''}
+                className="flex-1 sm:flex-none px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-900"
+              >
+                <option value="">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="PENDING_SIGNATURES">Pending Signatures</option>
+                <option value="PARTIALLY_SIGNED">Partially Signed</option>
+                <option value="FULLY_SIGNED">Fully Signed</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+              <Button type="submit" variant="outline" size="sm">Search</Button>
+              {(q || status) && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/deeds">Clear</Link>
+                </Button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -103,46 +105,49 @@ export default async function DeedsPage({ searchParams }: PageProps) {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Lender</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Guarantors</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {deeds.map((deed) => (
-                  <TableRow key={deed.id} className="hover:bg-slate-50">
-                    <TableCell className="font-mono text-xs font-medium">{deed.reference}</TableCell>
-                    <TableCell className="font-medium">{deed.companyName}</TableCell>
-                    <TableCell className="text-slate-600 text-sm">{deed.lender}</TableCell>
-                    <TableCell className="text-sm">{formatCurrency(deed.mortgageAmount)}</TableCell>
-                    <TableCell className="text-center text-sm">
-                      <span className="text-slate-600">
-                        {deed.guarantors.filter((g) => g.signatureStatus === 'SIGNED').length}/{deed.guarantors.length} signed
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <DeedStatusBadge status={deed.status} />
-                    </TableCell>
-                    <TableCell className="text-sm text-slate-500">{formatDate(deed.createdAt)}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/deeds/${deed.id}`}>
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden sm:table-cell">Lender</TableHead>
+                    <TableHead className="hidden sm:table-cell">Amount</TableHead>
+                    <TableHead className="hidden md:table-cell">Guarantors</TableHead>
+                    <TableHead className="hidden md:table-cell">Created</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {deeds.map((deed) => (
+                    <TableRow key={deed.id} className="hover:bg-slate-50">
+                      <TableCell>
+                        <p className="font-medium text-sm">{deed.companyName}</p>
+                        <p className="font-mono text-xs text-slate-500">{deed.reference}</p>
+                      </TableCell>
+                      <TableCell>
+                        <DeedStatusBadge status={deed.status} />
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-slate-600 text-sm">{deed.lender}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-sm">{formatCurrency(deed.mortgageAmount)}</TableCell>
+                      <TableCell className="hidden md:table-cell text-center text-sm">
+                        <span className="text-slate-600">
+                          {deed.guarantors.filter((g) => g.signatureStatus === 'SIGNED').length}/{deed.guarantors.length} signed
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-slate-500">{formatDate(deed.createdAt)}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/deeds/${deed.id}`}>
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
